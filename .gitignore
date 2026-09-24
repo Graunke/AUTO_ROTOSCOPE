@@ -1,8 +1,7 @@
 venv
 **/__pycache__/
-
 # Generated media and downloaded model weights
-models/*.pt
-video/*.mp4
-rotoscope_video/*.mp4
-frame_output/person_masks/
+**/models/* 
+**/video/*
+**/rotoscope_video/*
+**/frame_output/*
