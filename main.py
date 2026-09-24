@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
-from char_outline import detect, rotoscope_video
+from char_outline import detect
+from char_outline import rotoscope_video
 
 
 VIDEO_DIR = "video"
