@@ -50,8 +50,6 @@ def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float,
                         mask, (width, height), interpolation=cv2.INTER_NEAREST)
                     person_mask[mask > 0.5] = 255
 
-
-
                 folder = Path(image)
                 # Ensure the folder exists (if you expect it to be pre‑populated, you might skip this)
                 if not folder.is_dir():
@@ -80,13 +78,6 @@ def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float,
                             texture_resized = cv2.resize(texture, (width, height))
                             output_frame[person_mask > 0] = texture_resized[person_mask > 0]
                         
-                    
-                        
-
-                    
-
-
-                
                 # Draw a black outline (OpenCV colors are BGR)
                 contours, _ = cv2.findContours(
                 person_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 from pathlib import Path
 from char_outline import detect
 from char_outline import rotoscope_video
@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model",
-        default="models/yolo26n-seg.pt",
+        default="models/yolo26s-seg.pt",
         help="Ultralytics segmentation model.",
     )
     parser.add_argument(
@@ -90,3 +90,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
