@@ -5,3 +5,5 @@ venv
 **/video/*
 **/rotoscope_video/*
 **/frame_output/*
+videos_player.py
+videos
