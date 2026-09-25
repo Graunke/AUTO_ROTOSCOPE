@@ -4,22 +4,7 @@ from typing import Any, cast
 import cv2
 import numpy as np
 from ultralytics import YOLO
-
-
-def make_white_mask(frame: np.ndarray, person_mask: np.ndarray) -> np.ndarray:
-    output_frame = np.zeros_like(frame)
-    output_frame[person_mask > 0] = (255, 255, 255)
-
-    contours, _ = cv2.findContours(
-        person_mask.astype(np.uint8),
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE,
-    )
-    if contours:
-        cv2.drawContours(output_frame, contours, -1, (0, 0, 0), thickness=4)
-
-    return output_frame
-
+from pathlib import Path
 
 def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float, image: Path) -> None:
     output_dir = output_root / f"{video_path.stem}_masks"
@@ -43,7 +28,7 @@ def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float,
 
             saved_frames += 1
             height, width = frame.shape[:2]
-            output_frame = np.zeros((height, width, 3), dtype=np.uint8)
+            output_frame = frame.copy()
             print(f"Processing frame {saved_frames}/{int(capture.get(cv2.CAP_PROP_FRAME_COUNT))} of {video_path.name}...")
 
             result = cast(
