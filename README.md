@@ -4,4 +4,4 @@ Creating rotoscoped videos and images automatically
 
 ![example](image.png)
 
-<video src="assets\video.mp4" width="100%" controls></video>
+![example video](assent/video.gif)
