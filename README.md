@@ -2,4 +2,4 @@
 Creating rotoscoped videos and images automatically
 
 
-![example video](assent/video.gif)
+![example video](assets/video.gif)
