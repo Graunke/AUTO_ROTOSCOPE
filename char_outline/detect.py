@@ -6,8 +6,22 @@ import numpy as np
 from ultralytics import YOLO
 
 
+def make_white_mask(frame: np.ndarray, person_mask: np.ndarray) -> np.ndarray:
+    output_frame = np.zeros_like(frame)
+    output_frame[person_mask > 0] = (255, 255, 255)
 
-def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float) -> None:
+    contours, _ = cv2.findContours(
+        person_mask.astype(np.uint8),
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE,
+    )
+    if contours:
+        cv2.drawContours(output_frame, contours, -1, (0, 0, 0), thickness=4)
+
+    return output_frame
+
+
+def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float, image: Path) -> None:
     output_dir = output_root / f"{video_path.stem}_masks"
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -29,7 +43,7 @@ def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float)
 
             saved_frames += 1
             height, width = frame.shape[:2]
-            output_frame = frame.copy()
+            output_frame = np.zeros((height, width, 3), dtype=np.uint8)
             print(f"Processing frame {saved_frames}/{int(capture.get(cv2.CAP_PROP_FRAME_COUNT))} of {video_path.name}...")
 
             result = cast(
@@ -51,9 +65,43 @@ def process_video(video_path: Path, model: YOLO, output_root: Path, conf: float)
                         mask, (width, height), interpolation=cv2.INTER_NEAREST)
                     person_mask[mask > 0.5] = 255
 
-                # Paint the person white
-                output_frame[person_mask > 0] = (255, 255, 255)
 
+
+                folder = Path(image)
+                # Ensure the folder exists (if you expect it to be pre‑populated, you might skip this)
+                if not folder.is_dir():
+                    print(f"Folder '{folder}' does not exist or is not a directory.")
+
+                else:
+                    # Find the first image file with a matching extension
+                    image_path = None
+                    for item in folder.iterdir():
+                        if item.is_file() and item.suffix.lower() in ['.jpg', '.jpeg', '.png']:
+                            image_path = item
+                            break  # take the first match
+
+                    if image_path is None:
+                        print("Não foi possível abrir image, using white rotoscoping instead")
+                        # Paint the person white
+                        output_frame[person_mask > 0] = (255, 255, 255) 
+                    else:
+                        texture = cv2.imread(str(image_path))
+                        # Paint the person white
+                        output_frame[person_mask > 0] = (255, 255, 255)
+                        if texture is None:
+                            print("using white rotoscoping")
+                        else:
+                            print(f"Using texture from {image_path} for rotoscoping.")
+                            texture_resized = cv2.resize(texture, (width, height))
+                            output_frame[person_mask > 0] = texture_resized[person_mask > 0]
+                        
+                    
+                        
+
+                    
+
+
+                
                 # Draw a black outline (OpenCV colors are BGR)
                 contours, _ = cv2.findContours(
                 person_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -73,8 +121,9 @@ def run(
     model_path: str,
     output_dir: Path,
     conf: float,
+    image: Path
 ) -> None:
     model = YOLO(model_path)
     for video in videos:
-        process_video(video, model, output_dir, conf)
+        process_video(video, model, output_dir, conf, image)
 

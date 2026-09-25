@@ -1,8 +1,6 @@
 from __future__ import annotations
-
 from pathlib import Path
 from typing import Any, cast
-
 import cv2
 
 
@@ -28,26 +26,24 @@ def rebuild_video(
     if fps is None or fps <= 0:
         raise RuntimeError(f"Invalid output FPS: {fps}")
 
-    first_frame = cv2.imread(str(frame_files[0]))
-    if first_frame is None:
-        raise RuntimeError(f"Could not read frame: {frame_files[0]}")
-    height, width = first_frame.shape[:2]
-
-    output.parent.mkdir(parents=True, exist_ok=True)
+    rebuilt_video = cv2.VideoCapture(f"{frames_dir}/%06d.png")
+    rebuilt_video.set(cv2.CAP_PROP_FPS, fps)
+    width = int(rebuilt_video.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(rebuilt_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fourcc = cast(Any, getattr(cv2, "VideoWriter_fourcc"))(*"mp4v")
+    total_frames = int(rebuilt_video.get(cv2.CAP_PROP_FRAME_COUNT))
+
     writer = cv2.VideoWriter(str(output), fourcc, fps, (width, height))
-    if not writer.isOpened():
-        raise RuntimeError(f"Could not create output video: {output}")
 
-    try:
-        for frame_file in frame_files:
-            frame = cv2.imread(str(frame_file))
-            if frame is None:
-                raise RuntimeError(f"Could not read frame: {frame_file}")
-            if frame.shape[:2] != (height, width):
-                raise RuntimeError(f"Frame size differs from first frame: {frame_file}")
-            writer.write(frame)
-    finally:
-        writer.release()
+    counter = 0
+    while rebuilt_video.isOpened():
+        ret, frame = rebuilt_video.read()
+        if not ret:
+            break
+        print(f"Processing frame {counter}")
+        writer.write(frame)  # Write frame to file
+        counter += 1
 
-    print(f"Saved {len(frame_files)} frames to: {output}")
+    rebuilt_video.release()
+    writer.release()
+    print(f"Saved {total_frames} frames to: {output}")
